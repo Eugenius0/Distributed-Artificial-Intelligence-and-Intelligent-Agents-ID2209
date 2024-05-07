@@ -1,0 +1,55 @@
+data: |+
+  apiVersion: argoproj.io/v1alpha1
+  kind: Workflow
+  metadata:
+    generateName: def-sim-pipe
+  spec:
+    entrypoint: main-workflow
+    templates:
+      - name: main-workflow
+        dag:
+          tasks:
+            - name: task-1
+              template: def-pipe
+            - name: task-2
+              dependencies: [task-1]
+              template: sim-pipe
+
+      - name: def-pipe
+        container:
+          image: yilinchang/def-pipe-gke
+          command: [sh, -c]
+          args: ["echo 'Echoing the envParam MQ_HOST: $MQ_HOST'
+                && echo 'Echoing the envParam MQ_PORT: $MQ_PORT'
+                && echo 'Echoing the envParam MQ_USERNAME: $MQ_USERNAME'
+                && echo 'Echoing the envParam MQ_PASSWORD: $MQ_PASSWORD'"]
+          env:
+          - name: MQ_HOST
+            value: "HOST1"
+          - name: MQ_PORT
+            value: "PORT1"
+          - name: MQ_USERNAME
+            value: "def-pipe"
+          - name: MQ_PASSWORD
+            value: "***"
+
+      - name: sim-pipe
+        container:
+          image: sintef/sim-pipe
+          command: [sh, -c]
+          args: ["echo 'Echoing the envParam MQ_HOST: $MQ_HOST'
+                && echo 'Echoing the envParam MQ_PORT: $MQ_PORT'
+                && echo 'Echoing the envParam MQ_USERNAME: $MQ_USERNAME'
+                && echo 'Echoing the envParam MQ_PASSWORD: $MQ_PASSWORD'"]
+          env:
+          - name: MQ_HOST
+            value: "HOST"
+          - name: MQ_PORT
+            value: "PORT"
+          - name: MQ_USERNAME
+            value: "SIM-PIPE"
+          - name: MQ_PASSWORD
+            value: "****"
+
+success: true
+errorMessage: null
